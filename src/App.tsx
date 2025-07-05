@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
-import "./App.css"
 // @ts-ignore
 import pokemon from 'pokemontcgsdk';
-
+import './index.css'
+import PokeballImg from './imgs/pokeballImage.png';
+import Home from './imgs/home.png';
+import Collection from './imgs/collection.png';
+import Market from './imgs/market.png';
+import Grader from './imgs/grader.png';
 function App() {
   const [cards, setCards] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,31 +14,20 @@ function App() {
   const [error, setError] = useState('');
 
  function searchCard(pokemonName: string) {
-    console.log('Starting search for:', pokemonName);
     setIsLoading(true);
     setError('');
     pokemon.configure({apiKey: process.env.REACT_APP_POKEMON_API_KEY || ''});
     
-    console.log('API Key:', process.env.REACT_APP_POKEMON_API_KEY ? 'Present' : 'Missing');
-    console.log('Query string:', `name:${pokemonName}*`);
+
     
-    return pokemon.card.all({q: `name:"${pokemonName}"`})  // Try exact name search first
-    .then((result: any) => {  
-        console.log('API result:', result); // Debug: log the full result
-      console.log('Result data:', result.data); // Debug: log the data array
-      console.log('Data length:', result.data?.length); // Debug: log array length
+    return pokemon.card.all({q: `name:${pokemonName}*`})  
+    .then((result: any) => {        
+      const cardsArray = result.data || result || [];
       
-      if (result.data && result.data.length > 0) {
-        console.log('First card:', result.data[0]);
-        console.log('First card images:', result.data[0].images);
-      }
-      
-      setCards(result.data || []); // Ensure we set an array even if result.data is undefined
+      setCards(cardsArray); 
       setIsLoading(false);
-      console.log('Loading set to false, cards set');
     })
     .catch((error: any) => {  
-      console.error('Error fetching cards:', error);
       setCards([]);
       setError('Failed to fetch cards. Please try again.');
       setIsLoading(false);
@@ -52,28 +45,43 @@ function App() {
   return (
     <>
     <div className="App">
-      <form onSubmit={handleSubmit}>
+    <div className="w-full h-[8vw] bg-blue-400 rounded-b-md shadow-md flex items-center justify-between px-10 fixed z-20">
+      <img src={PokeballImg} alt="Pokeball" className="w-16 h-16"></img>
+      <img src={Home} alt="Home" className="w-20 h-10 hover:scale-110 transition-transform duration-200 cursor-pointer" />
+      <img src={Collection} alt="Collection" className="w-30 h-10 hover:scale-110 transition-transform duration-200 cursor-pointer" />
+      <img src={Market} alt="Market" className="w-25 h-10 hover:scale-110 transition-transform duration-200 cursor-pointer" />
+      <img src={Grader} alt="Grader" className="w-30 h-11 hover:scale-110 transition-transform duration-200 cursor-pointer" />
+      <form onSubmit={handleSubmit} className="flex items-center">
         <input 
-          className="SearchBar" 
           type="search" 
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="Search for Pokemon cards..."
+          className="w-80 px-4 py-3 rounded-lg border border-gray-300 shadow-sm 
+                   bg-white text-gray-900 placeholder-gray-500
+                   focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-transparent
+                   hover:shadow-md hover:border-gray-400
+                   transition-all duration-200 ease-in-out
+                   active:scale-95 active:shadow-inner"
         />
       </form>
-      <div className="cards-grid">
+    </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pt-40 pl-40 pr-40 transition-transform">
         {isLoading && <p>Loading cards...</p>}
         {error && <p style={{color: 'red'}}>{error}</p>}
-        {!isLoading && !error && cards && cards.length > 0 ? (
+        {cards.length > 0 && (
           cards.map((card: any) => (
             <img 
+              className= "w-full h-full object-cover transition-transform duration-300 ease-in-out transform hover:scale-110 z-10"
               key={card.id} 
               src={card.images.large} 
               alt={card.name}
+              
             />
           ))
-        ) : (
-          !isLoading && !error && <p>Search for Pokemon cards above! Try "pikachu" or "charizard"</p>
+        )}
+        {!isLoading && !error && cards.length === 0 && (
+            <></>
         )}
       </div>
     </div>
